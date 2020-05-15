@@ -1,4 +1,4 @@
-package model.data_structures;
+ package model.data_structures;
 
 import java.util.ArrayList;
 
@@ -17,9 +17,7 @@ public class GrafoNoDirigido <K,V>
 	private boolean[] marked;
 	private int[] id;
 	private int count;
-
-
-	private int V = 0;
+	private int V;
 	
 	public GrafoNoDirigido(int tamaNo) {
 		grafo = new EdgeWeightedGraph(tamaNo);
@@ -28,6 +26,7 @@ public class GrafoNoDirigido <K,V>
 		enteroALlave = new SeparateChainingHashST<Integer, K>();
 		id = new int[tamaNo];
 		count = 0;
+		V = 0;
 	
 	
 	}
@@ -169,6 +168,11 @@ public class GrafoNoDirigido <K,V>
 			resultado.add(enteroALlave.get(v));
 		}
 		return resultado;
+	}
+	
+	public void setInfoVertex(K key, V info)
+	{
+		llaveAInfoVertex.put(key, info);
 	}
 	
 	

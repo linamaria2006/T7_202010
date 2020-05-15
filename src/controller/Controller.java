@@ -40,6 +40,14 @@ public class Controller {
 				case 1:
 					modelo.cargarDatos();						
 					break;
+				case 2: 
+					modelo.generarJSon();
+					view.printMessage("Listo!\n\n");
+					break;
+				case 3:
+					modelo.leerJson();
+					view.printMessage("Listo!\n\n");
+					break;
 
 				
 
