@@ -1,10 +1,14 @@
 package model.logic;
 
+import java.awt.BorderLayout;
 import java.io.*;
 import java.lang.ProcessBuilder.Redirect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,6 +18,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import com.teamdev.jxmaps.LatLng;
+import com.teamdev.jxmaps.MapViewOptions;
 
 import edu.princeton.cs.algs4.Queue;
 import model.data_structures.GrafoNoDirigido;
@@ -24,12 +30,18 @@ import model.data_structures.noExisteObjetoException;
  *
  */
 public class Modelo {
+	
+	private final static double LATITUD_MIN = 4.597714;
+	private final static double LATITUD_MAX = 4.621360;
+	private final static double LONGITUD_MIN = -74.094723; 
+	private final static double LONGITUD_MAX = -74.062707;
 
 	private GrafoNoDirigido<Integer, String> grafo;
 	private GrafoNoDirigido<Integer, String> grafoDeApi;
 	private Haversine haversine;
 	private Queue<Vertice> qVertice;
 	private Queue<Edge> qEdge;
+	private Queue<Estacion> qEstacion;
 
 
 	public Modelo()
@@ -38,6 +50,7 @@ public class Modelo {
 		haversine = new Haversine();
 		qVertice = new Queue<Vertice>();
 		qEdge = new Queue<Edge>();
+		qEstacion = new Queue<Estacion>();
 
 	}
 
@@ -131,6 +144,7 @@ public class Modelo {
 			for(int i = 0; i < tamVert; i++)
 			{
 				Vertice v = qVertice.dequeue();
+				qVertice.enqueue(v);
 				listaVerts[i] = v;
 			}
 			String verts = gson.toJson(listaVerts);
@@ -140,6 +154,7 @@ public class Modelo {
 			for(int i = 0; i < tamEdge; i++)
 			{
 				Edge e = qEdge.dequeue();
+				qEdge.enqueue(e);
 				listaEdges[i] = e;
 			}
 			String edges = gson.toJson(listaEdges);
@@ -157,7 +172,7 @@ public class Modelo {
 
 	public void leerJson()
 	{
-		grafoDeApi = new GrafoNoDirigido<>(qVertice.size());
+		grafoDeApi = new GrafoNoDirigido<>(228046);
 		
 		String pathArcos = "./data/Json_Arcos";
 		JsonReader lectorArcos;
@@ -190,7 +205,7 @@ public class Modelo {
 				int from = o.get("from").getAsInt();
 				
 				int to = o.get("to").getAsInt();
-				System.out.println(to);
+				
 				
 				grafoDeApi.addEdge(from, to, peso);
 			}
@@ -200,11 +215,95 @@ public class Modelo {
 		}
 		catch(Exception e)
 		{
-			System.out.println("No puedo leer el json :(");
+			e.printStackTrace();
 			
 		}
 
 	}
+	
+	public void cargarEstaciones()
+	{
+		String path = "./data/estacionpolicia.geojson";
+		JsonReader lector;
+		
+		try 
+		{
+			lector = new JsonReader(new FileReader(path));
+			JsonElement element = JsonParser.parseReader(lector);
+			JsonObject o = element.getAsJsonObject();
+			JsonArray arreglo = o.get("features").getAsJsonArray();
+			
+			for(JsonElement e : arreglo)
+			{
+				JsonObject objeto = (JsonObject) e.getAsJsonObject().get("properties");
+				double lat = objeto.get("EPOLATITUD").getAsDouble();
+				double lon = objeto.get("EPOLONGITU").getAsDouble();
+				int id = objeto.get("OBJECTID").getAsInt();
+				String telefono = objeto.get("EPOTELEFON").getAsString();
+				String nombre = objeto.get("EPONOMBRE").getAsString();
+				String dir = objeto.get("EPODIR_SITIO").getAsString();
+				
+				Estacion estacion = new Estacion(lat, lon, id, nombre, telefono, dir);
+				qEstacion.enqueue(estacion);
+				
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			// TODO: handle exception
+		}
+		
+		
+	}
+	
+	public void graficar()
+	{
+
+		final Mapa mapa = new Mapa("test");
+		
+		LatLng vert1 = new LatLng(LATITUD_MIN, LONGITUD_MIN);
+		LatLng vert2 = new LatLng(LATITUD_MIN, LONGITUD_MAX);
+		LatLng vert3 = new LatLng(LATITUD_MAX, LONGITUD_MIN);
+		LatLng vert4 = new LatLng(LATITUD_MAX, LONGITUD_MIN);
+		mapa.GenerateLine(false, vert1, vert2, vert3, vert4);
+		for(Estacion estacion : qEstacion)
+		{
+			double lat = estacion.getLat();
+			double lon = estacion.getLon();
+			mapa.generateMarker(new LatLng(lat, lon));
+		}
+	
+		for(Vertice v : qVertice)
+		{
+			double lat = v.getLat();
+			double lon = v.getLong();
+			mapa.generateArea(new LatLng(lat, lon), 100.0);
+	
+		}
+		for (Edge e : qEdge)
+		{
+			int from = (int) e.getFrom();
+			int to = (int ) e.getTo();
+			
+			String fromS = grafoDeApi.getInfoVertex(from);
+			String toS = grafoDeApi.getInfoVertex(to);
+			
+			String[] partesFrom = fromS.split("/");
+			String[] partesTo = toS.split("/");
+			
+			double latIni = Double.parseDouble(partesFrom[1]);
+			double lonIni = Double.parseDouble(partesFrom[0]);
+			double latFin = Double.parseDouble(partesTo[1]);
+			double lonFin = Double.parseDouble(partesTo[0]);
+			
+			LatLng start = new LatLng(latIni, lonIni);
+			LatLng end = new LatLng(latFin, lonFin);
+			mapa.generateSimplePath(start, end, false);
+		}
+		
+		System.out.println("Mapa completo");
+	}
+	
 	
 	
 	

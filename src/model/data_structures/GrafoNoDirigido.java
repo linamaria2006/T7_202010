@@ -33,7 +33,7 @@ public class GrafoNoDirigido <K,V>
 	
 	public int cantidadVertices()
 	{
-		return grafo.V();
+		return V;
 		
 	}
 	

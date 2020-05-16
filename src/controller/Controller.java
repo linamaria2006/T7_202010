@@ -32,7 +32,8 @@ public class Controller {
 		String dato = "";
 		String respuesta = "";
 
-		while( !fin ){
+		while( !fin )
+		{
 			view.printMenu();
 
 			int option = lector.nextInt();
@@ -47,6 +48,13 @@ public class Controller {
 				case 3:
 					modelo.leerJson();
 					view.printMessage("Listo!\n\n");
+					break;
+				case 4:
+					modelo.cargarEstaciones();
+					view.printMessage("Listo!\n\n");
+					break;
+				case 5:
+					modelo.graficar();
 					break;
 
 				

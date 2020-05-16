@@ -1,5 +1,4 @@
 package model.logic;
-
 import java.awt.BorderLayout;
 import java.util.concurrent.TimeUnit;
 
@@ -7,23 +6,26 @@ import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import com.teamdev.jxmaps.swing.MapView;
+
 import com.teamdev.jxmaps.*;
-public class Mapa extends MapView
-{
-
-
+// tomado de 
+public class Mapa extends MapView{
+	
+/**
+ * The map object
+ */
 	private static Map map;
 
-	/**
-	 * Editable circle options 
-	 */
+/**
+ * Editable circle options 
+ */
 	private CircleOptions settingsCircle;
-	/**
-	 * Editable LineOptions
-	 */
+/**
+ * Editable LineOptions
+ */
 	private  PolylineOptions settingsLine;
 
-
+	
 	public CircleOptions getSettingsCircle() {
 		return settingsCircle;
 	}
@@ -44,13 +46,12 @@ public class Mapa extends MapView
 	public Marker generateMarker(LatLng pos)
 	{
 		Marker marker=null;
-
-
-		marker = new Marker(map);
-		marker.setPosition(pos);
-		map.setCenter(pos);
-
-		System.out.println("Graficado marker");
+	
+			
+			 marker = new Marker(map);
+			marker.setPosition(pos);
+			map.setCenter(pos);
+	
 		return marker;
 	}
 
@@ -115,12 +116,12 @@ public class Mapa extends MapView
 	 */
 	public Mapa(String pString) {
 
-		JFrame frame = new JFrame("Chicago-Data: "+pString);
+		JFrame frame = new JFrame("Bogota-Data: "+pString);
 
 
 		settingsCircle=new CircleOptions();
 		settingsCircle.setFillColor("#FF0000");
-		settingsCircle.setRadius(2000000);
+//		settingsCircle.setRadius(200);
 		settingsCircle.setFillOpacity(0.35);
 
 		settingsLine=new PolylineOptions();
@@ -142,10 +143,10 @@ public class Mapa extends MapView
 					MapTypeControlOptions controlOptions = new MapTypeControlOptions();
 					controlOptions.setPosition(ControlPosition.BOTTOM_LEFT);
 					mapOptions.setMapTypeControlOptions(controlOptions);
-
+					
 					map.setOptions(mapOptions);
-					map.setCenter(new LatLng(42.045527, -88.037659));
-					map.setZoom(10);
+					map.setCenter(new LatLng(4.585527, -74.087659));
+					map.setZoom(11);
 
 				}
 			}
@@ -168,6 +169,17 @@ public class Mapa extends MapView
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
+	
+//
+//	public static void main(String[] args) {
+//		// TODO Auto-generated method stub
+//		final Mapa example = new Mapa("test");
+//		example.generateMarker(map.getCenter());
+//		
+//	
+//
+//	}
+
 
 
 }

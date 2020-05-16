@@ -17,8 +17,8 @@ public class View
 			System.out.println("1. Cargar datos");
 			System.out.println("2. Json");
 			System.out.println("3. leer Json");
-			System.out.println("4. Eliminar String");
-			System.out.println("5. Imprimir el Arreglo");
+			System.out.println("4. cargar Estaciones");
+			System.out.println("5. mapa");
 			System.out.println("6. Exit");
 			System.out.println("Dar el numero de opcion a resolver, luego oprimir tecla Return: (e.g., 1):");
 		}
