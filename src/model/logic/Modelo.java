@@ -30,7 +30,7 @@ import model.data_structures.noExisteObjetoException;
  *
  */
 public class Modelo {
-	
+
 	private final static double LATITUD_MIN = 4.597714;
 	private final static double LATITUD_MAX = 4.621360;
 	private final static double LONGITUD_MIN = -74.094723; 
@@ -66,7 +66,7 @@ public class Modelo {
 		String cadenaVertex;
 		while((cadenaVertex = brVertex.readLine()) != null )
 		{
-			
+
 			String[] partesVertice = cadenaVertex.split(",");
 			int idVertex = Integer.parseInt(partesVertice[0]);
 			String infoVertex = partesVertice[1] +"/" + partesVertice[2];
@@ -128,13 +128,13 @@ public class Modelo {
 	{
 		int tamVert = qVertice.size();
 		int tamEdge = qEdge.size();
-		
+
 		String pathArcos = "./data/Json_Arcos";
 		String pathVertex = "./data/Json_vertices";
-		
+
 		FileWriter wv;
 		FileWriter we;
-	
+
 		Vertice[] listaVerts = new Vertice[tamVert];
 		Edge[] listaEdges = new Edge[tamEdge];
 		try {
@@ -150,7 +150,7 @@ public class Modelo {
 			String verts = gson.toJson(listaVerts);
 			wv.write(verts);
 			wv.close();
-			
+
 			for(int i = 0; i < tamEdge; i++)
 			{
 				Edge e = qEdge.dequeue();
@@ -160,7 +160,7 @@ public class Modelo {
 			String edges = gson.toJson(listaEdges);
 			we.write(edges);
 			we.close();
-		
+
 		} 
 		catch (FileNotFoundException e) {
 			System.out.println("No se encuentra el archivo para pasar el grafo a json");
@@ -173,10 +173,10 @@ public class Modelo {
 	public void leerJson()
 	{
 		grafoDeApi = new GrafoNoDirigido<>(228046);
-		
+
 		String pathArcos = "./data/Json_Arcos";
 		JsonReader lectorArcos;
-		
+
 		String pathVertex = "./data/Json_Vertices"; 
 		JsonReader lectorVertices;
 		try
@@ -191,7 +191,7 @@ public class Modelo {
 				String val = o.get("val").getAsString();
 				grafoDeApi.addVertex(key, val);
 			}
-			
+
 			lectorArcos = new JsonReader(new FileReader(pathArcos));
 			JsonElement elementoE =  JsonParser.parseReader(lectorArcos);
 			JsonArray listaEdges = elementoE.getAsJsonArray();
@@ -199,40 +199,40 @@ public class Modelo {
 			{
 				JsonObject o = e.getAsJsonObject();
 				String pesoS = o.get("peso").getAsString();
-				
+
 				double peso = Double.parseDouble(pesoS);
-				
+
 				int from = o.get("from").getAsInt();
-				
+
 				int to = o.get("to").getAsInt();
-				
-				
+
+
 				grafoDeApi.addEdge(from, to, peso);
 			}
-			
+
 			System.out.println("Arcos: " + grafoDeApi.cantidadArcos());
 			System.out.println("Vertices" + grafoDeApi.cantidadVertices());
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
-			
+
 		}
 
 	}
-	
+
 	public void cargarEstaciones()
 	{
 		String path = "./data/estacionpolicia.geojson";
 		JsonReader lector;
-		
+
 		try 
 		{
 			lector = new JsonReader(new FileReader(path));
 			JsonElement element = JsonParser.parseReader(lector);
 			JsonObject o = element.getAsJsonObject();
 			JsonArray arreglo = o.get("features").getAsJsonArray();
-			
+
 			for(JsonElement e : arreglo)
 			{
 				JsonObject objeto = (JsonObject) e.getAsJsonObject().get("properties");
@@ -242,29 +242,30 @@ public class Modelo {
 				String telefono = objeto.get("EPOTELEFON").getAsString();
 				String nombre = objeto.get("EPONOMBRE").getAsString();
 				String dir = objeto.get("EPODIR_SITIO").getAsString();
-				
+
 				Estacion estacion = new Estacion(lat, lon, id, nombre, telefono, dir);
 				qEstacion.enqueue(estacion);
-				
+
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			// TODO: handle exception
 		}
-		
-		
+
+
 	}
-	
+
 	public void graficar()
 	{
 
 		final Mapa mapa = new Mapa("test");
-		
+
 		LatLng vert1 = new LatLng(LATITUD_MIN, LONGITUD_MIN);
-		LatLng vert2 = new LatLng(LATITUD_MIN, LONGITUD_MAX);
-		LatLng vert3 = new LatLng(LATITUD_MAX, LONGITUD_MIN);
-		LatLng vert4 = new LatLng(LATITUD_MAX, LONGITUD_MIN);
+		LatLng vert2 = new LatLng(LATITUD_MAX, LONGITUD_MIN);
+		LatLng vert3 = new LatLng(LATITUD_MAX, LONGITUD_MAX);
+		LatLng vert4 = new LatLng(LATITUD_MIN, LONGITUD_MAX);
+
 		mapa.GenerateLine(false, vert1, vert2, vert3, vert4);
 		for(Estacion estacion : qEstacion)
 		{
@@ -272,41 +273,52 @@ public class Modelo {
 			double lon = estacion.getLon();
 			mapa.generateMarker(new LatLng(lat, lon));
 		}
-	
+
 		for(Vertice v : qVertice)
 		{
 			double lat = v.getLat();
 			double lon = v.getLong();
-			mapa.generateArea(new LatLng(lat, lon), 100.0);
-	
+			if(estaDentro(LATITUD_MIN, LONGITUD_MIN, LATITUD_MAX, LATITUD_MAX, lat, lon))
+			{
+				mapa.generateArea(new LatLng(lat, lon), 10.0);
+			}
+
 		}
 		for (Edge e : qEdge)
 		{
 			int from = (int) e.getFrom();
 			int to = (int ) e.getTo();
-			
+
 			String fromS = grafoDeApi.getInfoVertex(from);
 			String toS = grafoDeApi.getInfoVertex(to);
-			
+
 			String[] partesFrom = fromS.split("/");
 			String[] partesTo = toS.split("/");
-			
+
 			double latIni = Double.parseDouble(partesFrom[1]);
 			double lonIni = Double.parseDouble(partesFrom[0]);
 			double latFin = Double.parseDouble(partesTo[1]);
 			double lonFin = Double.parseDouble(partesTo[0]);
-			
-			LatLng start = new LatLng(latIni, lonIni);
-			LatLng end = new LatLng(latFin, lonFin);
-			mapa.generateSimplePath(start, end, false);
+
+			if(estaDentro(LATITUD_MIN, LATITUD_MIN, LATITUD_MAX, LONGITUD_MAX, latIni, lonIni) && estaDentro(LATITUD_MIN, LATITUD_MIN, LATITUD_MAX, LONGITUD_MAX, latFin, lonFin) )
+			{
+				LatLng start = new LatLng(latIni, lonIni);
+				LatLng end = new LatLng(latFin, lonFin);
+				mapa.generateSimplePath(start, end, false);
+			}
 		}
-		
+
+
 		System.out.println("Mapa completo");
 	}
-	
-	
-	
-	
-	
+
+	private boolean estaDentro(double latMin, double lonMin, double latMax, double lonMax, double latActual, double lonActual)
+	{
+		return (latActual <= latMax && latActual >= latMin) && (lonActual <= lonMax && lonActual >= lonMin);
+	}
+
+
+
+
 
 }
