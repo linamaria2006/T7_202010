@@ -26,6 +26,7 @@ import model.data_structures.noExisteObjetoException;
 public class Modelo {
 
 	private GrafoNoDirigido<Integer, String> grafo;
+	private GrafoNoDirigido<Integer, String> grafoDeApi;
 	private Haversine haversine;
 	private Queue<Vertice> qVertice;
 	private Queue<Edge> qEdge;
@@ -156,28 +157,46 @@ public class Modelo {
 
 	public void leerJson()
 	{
+		grafoDeApi = new GrafoNoDirigido<>(qVertice.size());
+		
 		String pathArcos = "./data/Json_Arcos";
-		String pathVertex = "./data/Json_Vertices";
-		JsonReader lectorArcos; 
+		JsonReader lectorArcos;
+		
+		String pathVertex = "./data/Json_Vertices"; 
 		JsonReader lectorVertices;
 		try
-		{
-			lectorArcos = new JsonReader(new FileReader(pathArcos));
-			
-			
-			
-			
-			
+		{	
 			lectorVertices = new JsonReader(new FileReader(pathVertex));
-			JsonElement elemento =  JsonParser.parseReader(lectorVertices);
-			JsonArray lista = elemento.getAsJsonArray();
-			for(JsonElement e : lista)
+			JsonElement elementoV =  JsonParser.parseReader(lectorVertices);
+			JsonArray listaVertices = elementoV.getAsJsonArray();
+			for(JsonElement e : listaVertices)
 			{
 				JsonObject o = e.getAsJsonObject();
 				int key = o.get("key").getAsInt();
 				String val = o.get("val").getAsString();
+				grafoDeApi.addVertex(key, val);
 			}
 			
+			lectorArcos = new JsonReader(new FileReader(pathArcos));
+			JsonElement elementoE =  JsonParser.parseReader(lectorArcos);
+			JsonArray listaEdges = elementoE.getAsJsonArray();
+			for(JsonElement e : listaEdges)
+			{
+				JsonObject o = e.getAsJsonObject();
+				String pesoS = o.get("peso").getAsString();
+				
+				double peso = Double.parseDouble(pesoS);
+				
+				int from = o.get("from").getAsInt();
+				
+				int to = o.get("to").getAsInt();
+				System.out.println(to);
+				
+				grafoDeApi.addEdge(from, to, peso);
+			}
+			
+			System.out.println("Arcos: " + grafoDeApi.cantidadArcos());
+			System.out.println("Vertices" + grafoDeApi.cantidadVertices());
 		}
 		catch(Exception e)
 		{
@@ -186,6 +205,9 @@ public class Modelo {
 		}
 
 	}
+	
+	
+	
 	
 
 }
